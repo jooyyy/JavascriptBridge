@@ -8,6 +8,7 @@
 
 #import "WebViewJavascriptBridge.h"
 #import "WebViewJavascriptLeakAvoider.h"
+
 #define kBridgePrefix @"__bridge__"
 
 @implementation WebViewJavascriptBridge  {
@@ -46,17 +47,16 @@
     [_base.messageHandlers removeObjectForKey:handlerName];
 }
 
-
 - (void)_setupInstance:(WKWebView*)webView showJSconsole:(BOOL)show enableLogging:(BOOL)enable{
     _webView = webView;
     _base = [[WebViewJavascriptBridgeBase alloc] init];
     _base.delegate = self;
     _showJSconsole = show;
     _enableLogging = enable;
-
     [self addScriptMessageHandler];
     [self _injectJavascriptFile];
 }
+
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     NSString * body = (NSString * )message.body;
     if ([self _filterMessage:body]) {
@@ -68,7 +68,7 @@
 - (void)_injectJavascriptFile {
     NSString *bridge_js = WebViewJavascriptBridge_js();
     //injected the method when H5 starts to create the DOM tree
-    WKUserScript * bridge_userScript = [[WKUserScript alloc]initWithSource:bridge_js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
+    WKUserScript * bridge_userScript = [[WKUserScript alloc] initWithSource:bridge_js injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES];
     [_webView.configuration.userContentController addUserScript:bridge_userScript];
     if (_showJSconsole) {
         NSString *console_log_js = WebViewJavascriptBridge_console_log_js();
@@ -84,7 +84,7 @@
     [_webView.configuration.userContentController removeScriptMessageHandlerForName:@"pipe"];
 }
 
-- (NSString*) _evaluateJavascript:(NSString*)javascriptCommand {
+- (NSString*)_evaluateJavascript:(NSString*)javascriptCommand {
     [_webView evaluateJavaScript:javascriptCommand completionHandler:nil];
     return NULL;
 }
@@ -93,8 +93,7 @@
     if (_enableLogging) {
          NSLog(@"All WVJB RCVD:%@",message);
     }
-    if (message&& [message isKindOfClass:[NSString class]] && [message containsString:kBridgePrefix])
-    {
+    if (message && [message isKindOfClass:[NSString class]] && [message containsString:kBridgePrefix]) {
         return message;
     }
     return nil;
@@ -110,7 +109,6 @@ NSString * WebViewJavascriptBridge_js() {
     // BEGIN preprocessorJSCode
     static NSString * preprocessorJSCode = @__WVJB_js_func__(
                                                              ;(function(window) {
-               
         window.WebViewJavascriptBridge = {
         registerHandler: registerHandler,
         callHandler: callHandler,
@@ -155,7 +153,6 @@ NSString * WebViewJavascriptBridge_js() {
                 if (message.responseId) {
                     responseCallback = responseCallbacks[message.responseId];
                     if (!responseCallback) {
-                       
                         return;
                     }
                     
@@ -197,11 +194,9 @@ NSString * WebViewJavascriptBridge_console_log_js() {
           let output = "";
           if (obj === null) {
               output += "null";
-          }
-          else  if (typeof(obj) == "undefined") {
+          } else if (typeof(obj) == "undefined") {
               output += "undefined";
-          }
-          else if (typeof obj ==='object'){
+          } else if (typeof obj ==='object') {
               output+="{";
               for(let key in obj){
                   let value = obj[key];
@@ -209,8 +204,7 @@ NSString * WebViewJavascriptBridge_console_log_js() {
               }
               output = output.substr(0, output.length - 1);
               output+="}";
-          }
-          else {
+          } else {
               output = "" + obj;
           }
           return output;
@@ -224,8 +218,8 @@ NSString * WebViewJavascriptBridge_console_log_js() {
         })(window.console.log,printObject);
 
     })(window);
-                                                             ); // END preprocessorJSCode
-    
+                                                             );
+    // END preprocessorJSCode
 #undef __WVJB_js_func__
     return preprocessorJSCode;
 };

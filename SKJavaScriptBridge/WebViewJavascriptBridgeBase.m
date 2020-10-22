@@ -10,6 +10,7 @@
 @implementation WebViewJavascriptBridgeBase {
      long _uniqueId;
 }
+
 - (instancetype)init {
     if (self = [super init]) {
         self.messageHandlers = [NSMutableDictionary dictionary];
@@ -38,7 +39,7 @@
     [self _dispatchMessage:message];
 }
 
-- (void)flushMessageQueue:(NSString *)messageQueueString{
+- (void)flushMessageQueue:(NSString *)messageQueueString {
     if (messageQueueString == nil || messageQueueString.length == 0) {
         NSLog(@"WebViewJavascriptBridge: WARNING: ObjC got nil while fetching the message queue JSON from webview. This can happen if the WebViewJavascriptBridge JS is not currently present in the webview, e.g if the webview just loaded a new page.");
         return;
@@ -85,7 +86,7 @@
     }
 }
 
-- (NSString *)_serializeMessage:(id)message pretty:(BOOL)pretty{
+- (NSString *)_serializeMessage:(id)message pretty:(BOOL)pretty {
     return [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:message options:(NSJSONWritingOptions)(pretty ? NSJSONWritingPrettyPrinted : 0) error:nil] encoding:NSUTF8StringEncoding];
 }
 
@@ -93,7 +94,7 @@
     return [NSJSONSerialization JSONObjectWithData:[messageJSON dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingAllowFragments error:nil];
 }
 
-- (void) _evaluateJavascript:(NSString *)javascriptCommand {
+- (void)_evaluateJavascript:(NSString *)javascriptCommand {
     [self.delegate _evaluateJavascript:javascriptCommand];
 }
 
@@ -111,7 +112,6 @@
     NSString* javascriptCommand = [NSString stringWithFormat:@"WebViewJavascriptBridge._handleMessageFromObjC('%@');", messageJSON];
     if ([[NSThread currentThread] isMainThread]) {
         [self _evaluateJavascript:javascriptCommand];
-
     } else {
         dispatch_sync(dispatch_get_main_queue(), ^{
             [self _evaluateJavascript:javascriptCommand];
